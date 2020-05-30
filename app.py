@@ -10,19 +10,33 @@ url = "https://..."
 # if you change this, maybe you need to change the string 'Proxy' in rule0...rule4.
 name_Proxy = '  name: Proxy'
 
-rule0 = '''-
+rule_type = '''-
+  name: Foreign
+  type: select
+  proxies:
+    - DIRECT
+    - Proxy
+-
   name: Domestic
   type: select
   proxies:
     - DIRECT
     - Proxy
 -
+  name: Custom
+  type: select
+  proxies:
+    - Foreign
+    - Domestic
+-
   name: Others
   type: select
   proxies:
-    - Proxy
-    - Domestic'''
-rule1 ='''Rule:
+    - Foreign
+    - Domestic
+'''
+
+rule_switch ='''Rule:
 # China Area Network
 # > Microsoft
 - DOMAIN-SUFFIX,microsoft.com,Domestic
@@ -183,13 +197,6 @@ rule1 ='''Rule:
 - DOMAIN-SUFFIX,zhimg.com,Domestic
 #USER-AGENT,NeteaseMusic*,Domestic
 #USER-AGENT,%E7%BD%91%E6%98%93%E4%BA%91%E9%9F%B3%E4%B9%90*,Domestic
-
-# > SJTU
-- DOMAIN-SUFFIX,sjtu.edu.cn,Domestic
-
-# > Personal
-- DOMAIN-SUFFIX,yukisaki.io,Domestic
-- DOMAIN-SUFFIX,sjtuacm.com,Domestic
 
 # (DNS Cache Pollution Protection)
 # > Google
@@ -441,9 +448,9 @@ rule1 ='''Rule:
 - DOMAIN-KEYWORD,jav,Proxy
 - DOMAIN-KEYWORD,pinterest,Proxy
 - DOMAIN-KEYWORD,porn,Proxy
-- DOMAIN-KEYWORD,wikileaks,Proxy'''
+- DOMAIN-KEYWORD,wikileaks,Proxy
 
-rule2 = '''# (Region-Restricted Access Denied)
+# (Region-Restricted Access Denied)
 - DOMAIN-SUFFIX,apartmentratings.com,Proxy
 - DOMAIN-SUFFIX,apartments.com,Proxy
 - DOMAIN-SUFFIX,bankmobilevibe.com,Proxy
@@ -612,9 +619,10 @@ rule2 = '''# (Region-Restricted Access Denied)
 - DOMAIN-SUFFIX,yimg.com,Proxy
 
 - DOMAIN-KEYWORD,dlercloud,Proxy
-- DOMAIN-SUFFIX,dler.cloud,Proxy'''
+- DOMAIN-SUFFIX,dler.cloud,Proxy
+'''
 
-rule3 = '''# Local Area Network
+rule_local = '''# Local Area Network
 - DOMAIN-KEYWORD,announce,DIRECT
 - DOMAIN-KEYWORD,torrent,DIRECT
 - DOMAIN-KEYWORD,tracker,DIRECT
@@ -628,7 +636,16 @@ rule3 = '''# Local Area Network
 # GeoIP China
 - GEOIP,CN,Domestic
 
-- MATCH,Others'''
+- MATCH,Others
+'''
+
+rule_custom = '''# > SJTU
+- DOMAIN-SUFFIX,sjtu.edu.cn,Custom
+
+# > Personal
+- DOMAIN-SUFFIX,yukisaki.io,Custom
+- DOMAIN-SUFFIX,sjtuacm.com,Custom
+'''
 
 @app.route('/')
 def work():
@@ -639,14 +656,7 @@ def work():
             break
         ret += ls[i]
         ret += '\n'
-    ret += rule0
-    ret += '\n'
-    ret += rule1
-    ret += '\n'
-    ret += rule2
-    ret += '\n'
-    ret += rule3
-    ret += '\n'
+    ret += rule_type + rule_switch.replace('Proxy', 'Foreign') + rule_local + rule_custom
     return ret
 
 
